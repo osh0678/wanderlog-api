@@ -13,10 +13,13 @@ public class UserService {
 
     // 사용자 등록
     public User registerUser(User user) {
-        // 비밀번호 암호화 로직 추가 필요
         return userRepository.save(user);
     }
 
+    // 이메일과 비밀번호로 사용자 조회
+    public User getUserByEmailAndPassword(String email, String password) {
+        return userRepository.findByEmailAndPassword(email, password);
+    }
     // 이메일로 사용자 조회
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -28,7 +31,8 @@ public class UserService {
     }
 
     // 사용자 삭제
-    public void deleteUser(Long userId) {
+    public boolean deleteUser(Long userId) {
         userRepository.deleteById(userId);
+        return false;
     }
 }
