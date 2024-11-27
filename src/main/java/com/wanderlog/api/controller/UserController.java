@@ -1,6 +1,7 @@
 package com.wanderlog.api.controller;
 
 import com.wanderlog.api.dto.request.LoginRequest;
+import com.wanderlog.api.dto.response.LoginResponse;
 import com.wanderlog.api.entity.User;
 import com.wanderlog.api.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +26,16 @@ public class UserController {
 
     // 사용자 정보 조회
     @PostMapping("/login")
-    public ResponseEntity<User> getUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         User user = userService.getUserByEmailAndPassword(loginRequest.getEmail(), loginRequest.getPassword());
         if (user != null) {
-            return ResponseEntity.ok(user); // 200 OK와 사용자 정보 반환
+            // 성공적인 로그인 응답
+            LoginResponse response = new LoginResponse(user.getId(), "로그인 성공");
+            return ResponseEntity.status(200).body(response);
         } else {
-            //message = "Invalid email or password"
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            // 로그인 실패 응답
+            LoginResponse response = new LoginResponse(null, "아이디 또는 비밀번호가 일치하지 않습니다.");
+            return ResponseEntity.status(401).body(response); // 401 Unauthorized
         }
     }
 

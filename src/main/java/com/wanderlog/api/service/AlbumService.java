@@ -1,11 +1,13 @@
 package com.wanderlog.api.service;
 
 import com.wanderlog.api.dto.request.AlbumRequest;
+import com.wanderlog.api.dto.response.AlbumResponse;
 import com.wanderlog.api.entity.Album;
 import com.wanderlog.api.entity.User;
 import com.wanderlog.api.repository.AlbumRepository;
 import com.wanderlog.api.repository.UserRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +35,22 @@ public class AlbumService {
     }
 
     // 특정 사용자의 앨범 목록 조회
-    public List<Album> getAlbumsByUserId(Long userId) {
-        return albumRepository.findByUserId(userId);
+    public List<AlbumResponse> getAlbumsByUserId(Long userId) {
+        List<Album> albums = albumRepository.findByUserId(userId);
+
+        // Album -> AlbumResponse로 변환
+        return albums.stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+     // Album -> AlbumResponse 매핑 함수
+    private AlbumResponse toResponse(Album album) {
+        AlbumResponse response = new AlbumResponse();
+        response.setId(album.getId());
+        response.setTitle(album.getTitle());
+        response.setDescription(album.getDescription());
+        response.setCreatedAt(album.getCreatedAt());
+        response.setUpdatedAt(album.getUpdatedAt());
+        return response;
     }
 
     // 앨범 정보 업데이트

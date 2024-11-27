@@ -2,7 +2,7 @@ spring:
   application:
     name: wanderlog-api
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgresql
+    url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
@@ -13,3 +13,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+server:
+    port: 8081
+
+logging:
+    level:
+        hibernate:
+            SQL: debug
+            type: trace
