@@ -41,7 +41,7 @@ public class AlbumController {
     }
 
     // 특정 사용자의 특정 앨범의 사진 목록 조회
-    @GetMapping("/{userId}/{albumId}/photos")
+    @GetMapping("/photos/{userId}/{albumId}")
     public ResponseEntity<List<PhotoResponse>> getPhotosByUserAndAlbumId(@PathVariable Long userId, @PathVariable Long albumId) {
         List<PhotoResponse> photos = photoService.getPhotosByUserAndAlbumId(userId, albumId);
         if (photos.isEmpty()) {
