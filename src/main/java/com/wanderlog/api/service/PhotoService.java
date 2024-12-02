@@ -10,8 +10,12 @@ import com.wanderlog.api.repository.PhotoRepository;
 import com.wanderlog.api.repository.TagRepository;
 import com.wanderlog.api.repository.UserRepository;
 import com.wanderlog.api.utils.FileUtils;
+import jakarta.transaction.Transactional;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,11 +31,6 @@ public class PhotoService {
     private final AlbumRepository albumRepository;
     private final PhotoRepository photoRepository;
     private final TagRepository tagRepository;
-
-    // 사진 업로드
-    public Photo uploadPhoto(Photo photo) {
-        return photoRepository.save(photo);
-    }
 
     // 특정 앨범의 사진 목록 조회
     public List<PhotoResponse> getPhotosByUserAndAlbumId(Long userId, Long albumId) {
@@ -52,12 +51,19 @@ public class PhotoService {
         response.setTakenAt(photo.getTakenAt());
         response.setCreatedAt(photo.getCreatedAt());
         response.setUpdatedAt(photo.getUpdatedAt());
+
+        List<String> tagNames = photo.getTags().stream()
+                .map(Tag::getName)
+                .collect(Collectors.toList());
+        response.setTags(tagNames);
         return response;
     }
 
-    public List<Photo> uploadPhotos(Long userId, Long albumId, MultipartFile[] files,
-                                    List<String> titles, List<String> descriptions, List<String> takenAtList,
-                                    List<List<String>> tagLists) throws IOException {
+    @Transactional
+    public void uploadPhoto(Long userId, Long albumId, MultipartFile file, String title,
+                            String description, String takenAt, List<String> tags) throws IOException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
         // 유저 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
@@ -66,41 +72,50 @@ public class PhotoService {
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new RuntimeException("앨범을 찾을 수 없습니다."));
 
-        // 앨범과 유저가 연결되어 있는지 확인
+        // 앨범과 유저 연결 확인
         if (!album.getUser().getId().equals(userId)) {
-            throw new RuntimeException("권한이 올바르지 않습니다.");
+            throw new RuntimeException("권한이 없습니다.");
         }
 
-        // 파일 저장 및 Photo 엔티티 생성
-        List<Photo> photos = new ArrayList<>();
-        for (int i = 0; i < files.length; i++) {
-            MultipartFile file = files[i];
+        // 파일 저장
+        String filePath = FileUtils.saveFile(file, "uploads/photos/");
 
-            // 파일 저장
-            String filePath = FileUtils.saveFile(file, null); // 기본 디렉토리 사용
+        // 태그 처리
+        List<Tag> tagEntities = tags.stream()
+                .map(tagName -> tagRepository.findByName(tagName).orElseGet(() -> new Tag(tagName)))
+                .collect(Collectors.toList());
 
-            // 태그 처리
-            List<String> tagNames = (tagLists != null && i < tagLists.size()) ? tagLists.get(i) : new ArrayList<>();
-            List<Tag> tags = processTags(tagNames);
-
-            // Photo 엔티티 생성
-            Photo photo = new Photo();
-            photo.setFilePath(filePath);
-            photo.setTitle((titles != null && i < titles.size()) ? titles.get(i) : file.getOriginalFilename());
-            photo.setDescription((descriptions != null && i < descriptions.size()) ? descriptions.get(i) : null);
-            photo.setTakenAt(
-                    (takenAtList != null && i < takenAtList.size()) ? LocalDateTime.parse(takenAtList.get(i)) : null);
-            photo.setCreatedAt(LocalDateTime.now());
-            photo.setUpdatedAt(LocalDateTime.now());
-            photo.setAlbum(album);
-            photo.setUser(user);
-            photo.setTags(tags); // 태그 설정
-
-            photos.add(photo);
+        // 촬영 시간 처리
+        LocalDateTime takenAtDateTime = null;
+        if (takenAt != null) {
+            try {
+                // 먼저 날짜와 시간 형식을 시도
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+                takenAtDateTime = LocalDateTime.parse(takenAt, dateTimeFormatter);
+            } catch (DateTimeParseException e1) {
+                try {
+                    // 시간 정보 없이 날짜 형식을 시도
+                    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    takenAtDateTime = LocalDate.parse(takenAt, dateFormatter).atStartOfDay();
+                } catch (DateTimeParseException e2) {
+                    System.err.println("Invalid date format: " + takenAt);
+                }
+            }
         }
 
-        // 데이터베이스에 저장
-        return photoRepository.saveAll(photos);
+        // Photo 엔티티 생성 및 저장
+        Photo photo = new Photo();
+        photo.setFilePath(filePath);
+        photo.setTitle(title);
+        photo.setDescription(description);
+        photo.setTakenAt(takenAtDateTime);
+        photo.setCreatedAt(LocalDateTime.now());
+        photo.setUpdatedAt(LocalDateTime.now());
+        photo.setAlbum(album);
+        photo.setUser(user);
+        photo.setTags(tagEntities);
+
+        photoRepository.save(photo);
     }
 
     public List<Tag> processTags(List<String> tagNames) {

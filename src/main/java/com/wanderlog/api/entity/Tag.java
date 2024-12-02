@@ -29,4 +29,11 @@ public class Tag {
     // 연관 관계 매핑 (스토리와의 N:M 관계)
     @ManyToMany(mappedBy = "tags")
     private List<Story> stories;
+
+    // 기본 생성자 (JPA용)
+    public Tag() {}
+
+    public Tag(String name) {
+        this.name = name;
+    }
 }
