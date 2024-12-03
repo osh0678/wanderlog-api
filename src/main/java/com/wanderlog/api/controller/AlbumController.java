@@ -59,7 +59,7 @@ public class AlbumController {
             @RequestParam("title") String title,                    // 단일 제목
             @RequestParam("description") String description,        // 단일 설명
             @RequestParam("takenAt") String takenAt,                // 단일 촬영 시간
-            @RequestParam("tags") List<String> tags                 // 태그 목록
+            @RequestParam("tags") List<String> tags                // 태그 목록
     ) throws IOException {
         // 태그 데이터를 단순 List로 처리
 

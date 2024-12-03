@@ -62,8 +62,6 @@ public class PhotoService {
     @Transactional
     public void uploadPhoto(Long userId, Long albumId, MultipartFile file, String title,
                             String description, String takenAt, List<String> tags) throws IOException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-
         // 유저 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
@@ -81,9 +79,7 @@ public class PhotoService {
         String filePath = FileUtils.saveFile(file, "uploads/photos/");
 
         // 태그 처리
-        List<Tag> tagEntities = tags.stream()
-                .map(tagName -> tagRepository.findByName(tagName).orElseGet(() -> new Tag(tagName)))
-                .collect(Collectors.toList());
+        List<Tag> tagEntities = processTags(tags);
 
         // 촬영 시간 처리
         LocalDateTime takenAtDateTime = null;
@@ -103,6 +99,7 @@ public class PhotoService {
             }
         }
 
+
         // Photo 엔티티 생성 및 저장
         Photo photo = new Photo();
         photo.setFilePath(filePath);
@@ -121,14 +118,19 @@ public class PhotoService {
     public List<Tag> processTags(List<String> tagNames) {
         List<Tag> tags = new ArrayList<>();
         for (String tagName : tagNames) {
-            // 태그 이름으로 검색하거나 새로 생성
-            Tag tag = tagRepository.findByName(tagName)
-                    .orElseGet(() -> {
-                        Tag newTag = new Tag();
-                        newTag.setName(tagName);
-                        return tagRepository.save(newTag); // 새 태그 저장
-                    });
-            tags.add(tag);
+            // 특수 기호 제거 및 공백 트림
+            String cleanTagName = tagName.replaceAll("[^a-zA-Z0-9가-힣\\s]", "").trim();
+
+            // 태그 이름이 비어 있지 않으면 처리
+            if (!cleanTagName.isEmpty()) {
+                Tag tag = tagRepository.findByName(cleanTagName)
+                        .orElseGet(() -> {
+                            Tag newTag = new Tag();
+                            newTag.setName(cleanTagName);
+                            return tagRepository.save(newTag); // 새 태그 저장
+                        });
+                tags.add(tag);
+            }
         }
         return tags;
     }

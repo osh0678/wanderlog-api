@@ -46,13 +46,4 @@ public class Album {
     // 연관 관계 매핑 (앨범에 속한 사진들)
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos;
-
-    // 연관 관계 매핑 (앨범과 위치의 N:M 관계)
-    @ManyToMany
-    @JoinTable(
-        name = "ALBUM_LOCATIONS",
-        joinColumns = @JoinColumn(name = "album_id"),
-        inverseJoinColumns = @JoinColumn(name = "location_id")
-    )
-    private List<Location> locations;
 }

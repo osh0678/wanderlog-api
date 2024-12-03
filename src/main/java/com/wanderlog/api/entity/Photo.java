@@ -52,11 +52,6 @@ public class Photo {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 연관 관계 매핑 (사진이 촬영된 위치)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id")
-    private Location location;
-
     // 연관 관계 매핑 (스토리와의 N:M 관계)
     @ManyToMany(mappedBy = "photos")
     private List<Story> stories;
