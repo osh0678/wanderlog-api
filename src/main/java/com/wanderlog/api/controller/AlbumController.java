@@ -26,9 +26,12 @@ public class AlbumController {
 
     // 앨범 생성
     @PostMapping
-    public ResponseEntity<Album> createAlbum(@RequestBody AlbumRequest album) {
-        Album createdAlbum = albumService.createAlbum(album);
-        return ResponseEntity.status(201).body(createdAlbum); // 201 Created
+    public ResponseEntity<AlbumResponse> createAlbum(
+            @RequestPart("album") AlbumRequest albumRequest,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverPhoto) {
+        Album createdAlbum = albumService.createAlbum(albumRequest, coverPhoto);
+        AlbumResponse response = albumService.toResponse(createdAlbum);
+        return ResponseEntity.status(201).body(response); // 201 Created
     }
 
     //특정 사용자 모든 사진 조회

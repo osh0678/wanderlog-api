@@ -32,6 +32,9 @@ public class Album {
     @Column(columnDefinition = "TEXT")
     private String description;  // 앨범 설명
 
+    @Column(length = 255)
+    private String coverImage;  // 앨범 표지 이미지 경로
+
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();  // 앨범 생성 시간
 
