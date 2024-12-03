@@ -1,7 +1,9 @@
 package com.wanderlog.api.controller;
 
 import com.wanderlog.api.dto.request.LoginRequest;
+import com.wanderlog.api.dto.request.UpdatePasswordRequest;
 import com.wanderlog.api.dto.response.LoginResponse;
+import com.wanderlog.api.dto.response.UserInfoResponse;
 import com.wanderlog.api.entity.User;
 import com.wanderlog.api.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class UserController {
         return ResponseEntity.ok(createdUser); // 200 OK와 생성된 사용자 반환
     }
 
-    // 사용자 정보 조회
+    // 로그인
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         User user = userService.getUserByEmailAndPassword(loginRequest.getEmail(), loginRequest.getPassword());
@@ -39,13 +41,25 @@ public class UserController {
         }
     }
 
-    // 사용자 정보 업데이트
+    // 사용자 정보 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<UserInfoResponse> getUser(@PathVariable Long id) {
+        User user = userService.getUser(id);
+        if (user != null) {
+            UserInfoResponse userInfoResponse = new UserInfoResponse(user.getUsername(), user.getEmail());
+            return ResponseEntity.ok(userInfoResponse); // 200 OK와 사용자 정보 반환
+        } else {
+            return ResponseEntity.notFound().build(); // 404 Not Found
+        }
+    }
+
+    // 비밀번호 업데이트
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        user.setId(id);
-        User updatedUser = userService.updateUser(user);
-        if (updatedUser != null) {
-            return ResponseEntity.ok(updatedUser); // 200 OK와 업데이트된 사용자 반환
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UpdatePasswordRequest updatePasswordRequest) {
+        boolean updatedUser = userService.updatePassword(id, updatePasswordRequest);
+
+        if (updatedUser) {
+            return ResponseEntity.ok().build(); // 200 OK
         } else {
             return ResponseEntity.notFound().build(); // 404 Not Found
         }
