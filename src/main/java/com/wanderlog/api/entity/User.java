@@ -43,8 +43,4 @@ public class User {
     // 연관 관계 매핑 (User가 업로드한 사진들)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos;
-
-    // 연관 관계 매핑 (User가 작성한 스토리들)
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Story> stories;
 }
