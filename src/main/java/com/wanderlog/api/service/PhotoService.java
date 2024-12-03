@@ -1,6 +1,8 @@
 package com.wanderlog.api.service;
 
+import com.wanderlog.api.dto.request.UpdatePhotoRequest;
 import com.wanderlog.api.dto.response.PhotoResponse;
+import com.wanderlog.api.dto.response.TimelineResponse;
 import com.wanderlog.api.entity.Album;
 import com.wanderlog.api.entity.Photo;
 import com.wanderlog.api.entity.Tag;
@@ -31,6 +33,35 @@ public class PhotoService {
     private final AlbumRepository albumRepository;
     private final PhotoRepository photoRepository;
     private final TagRepository tagRepository;
+
+
+    // 특정 사용자의 모든 사진 조회
+    public List<TimelineResponse> getPhotosByUserId(Long userId) {
+        List<Photo> photos = photoRepository.findByUserId(userId);
+
+        // Photo -> TimelineResponse 변환
+        return photos.stream()
+                .map(this::toTimelineResponse)
+                .collect(Collectors.toList());
+    }
+
+    private TimelineResponse toTimelineResponse(Photo photo) {
+        TimelineResponse response = new TimelineResponse();
+        response.setId(photo.getId());
+        response.setAlbumId(photo.getAlbum().getId()); // 앨범 ID 설정
+        response.setAlbumTitle(photo.getAlbum().getTitle()); // 앨범 제목 설정
+        response.setAlbumDescription(photo.getAlbum().getDescription()); // 앨범 설명 설정
+        response.setFilePath(photo.getFilePath());
+        response.setTitle(photo.getTitle());
+        response.setDescription(photo.getDescription());
+        response.setTags(photo.getTags().stream()
+                .map(Tag::getName)
+                .collect(Collectors.toList()));
+        response.setTakenAt(photo.getTakenAt());
+        response.setCreatedAt(photo.getCreatedAt());
+        response.setUpdatedAt(photo.getUpdatedAt());
+        return response;
+    }
 
     // 특정 앨범의 사진 목록 조회
     public List<PhotoResponse> getPhotosByUserAndAlbumId(Long userId, Long albumId) {
@@ -99,7 +130,6 @@ public class PhotoService {
             }
         }
 
-
         // Photo 엔티티 생성 및 저장
         Photo photo = new Photo();
         photo.setFilePath(filePath);
@@ -136,8 +166,23 @@ public class PhotoService {
     }
 
     // 사진 정보 업데이트
-    public Photo updatePhoto(Photo photo) {
-        return photoRepository.save(photo);
+    @Transactional
+    public void updatePhoto(Long userId, Long photoId, UpdatePhotoRequest photo) {
+        // 사진 확인
+        Photo photoEntity = photoRepository.findById(photoId)
+                .orElseThrow(() -> new RuntimeException("사진을 찾을 수 없습니다."));
+
+        // 유저 확인
+        if (!photoEntity.getUser().getId().equals(userId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        // 업데이트
+        photoEntity.setTitle(photo.getTitle());
+        photoEntity.setDescription(photo.getDescription());
+        photoEntity.setTags(processTags(photo.getTags()));
+        photoEntity.setUpdatedAt(LocalDateTime.now());
+        photoRepository.save(photoEntity);
     }
 
     // 사진 삭제

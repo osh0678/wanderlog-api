@@ -1,8 +1,10 @@
 package com.wanderlog.api.controller;
 
 import com.wanderlog.api.dto.request.AlbumRequest;
+import com.wanderlog.api.dto.request.UpdatePhotoRequest;
 import com.wanderlog.api.dto.response.AlbumResponse;
 import com.wanderlog.api.dto.response.PhotoResponse;
+import com.wanderlog.api.dto.response.TimelineResponse;
 import com.wanderlog.api.entity.Album;
 import com.wanderlog.api.service.AlbumService;
 import com.wanderlog.api.service.PhotoService;
@@ -27,6 +29,16 @@ public class AlbumController {
     public ResponseEntity<Album> createAlbum(@RequestBody AlbumRequest album) {
         Album createdAlbum = albumService.createAlbum(album);
         return ResponseEntity.status(201).body(createdAlbum); // 201 Created
+    }
+
+    //특정 사용자 모든 사진 조회
+    @GetMapping("/timeline/{userId}")
+    public ResponseEntity<List<TimelineResponse>> getPhotosByUserId(@PathVariable Long userId) {
+        List<TimelineResponse> photos = photoService.getPhotosByUserId(userId);
+        if (photos.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204 No Content
+        }
+        return ResponseEntity.ok(photos); // 200 OK
     }
 
     // 특정 사용자의 앨범 목록 조회
@@ -69,6 +81,14 @@ public class AlbumController {
         // 업로드 후 사진 목록 반환
         List<PhotoResponse> photoResponseList = photoService.getPhotosByUserAndAlbumId(userId, albumId);
         return ResponseEntity.status(201).body(photoResponseList); // 201 Created
+    }
+
+    // 사진 정보 업데이트
+    @PutMapping("/photos/{userId}/{photoId}")
+    public ResponseEntity<String> updatePhoto(@PathVariable Long userId, @PathVariable Long photoId, @RequestBody UpdatePhotoRequest photo) {
+        photoService.updatePhoto(userId, photoId, photo);
+
+        return ResponseEntity.ok("성공"); // 200 OK
     }
 
     // 앨범 정보 업데이트
