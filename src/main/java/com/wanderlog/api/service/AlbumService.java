@@ -21,7 +21,7 @@ public class AlbumService {
 
     // 앨범 생성
     public Album createAlbum(AlbumRequest albumRequest) {
-                // user_id로 User 객체 조회
+        // user_id로 User 객체 조회
         User user = userRepository.findById(albumRequest.getUserId())
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
@@ -39,10 +39,12 @@ public class AlbumService {
         List<Album> albums = albumRepository.findByUserId(userId);
 
         // Album -> AlbumResponse로 변환
-        return albums.stream().map(this::toResponse).collect(Collectors.toList());
+        return albums.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-     // Album -> AlbumResponse 매핑 함수
+    // Album -> AlbumResponse 매핑 함수
     private AlbumResponse toResponse(Album album) {
         AlbumResponse response = new AlbumResponse();
         response.setId(album.getId());
@@ -50,6 +52,7 @@ public class AlbumService {
         response.setDescription(album.getDescription());
         response.setCreatedAt(album.getCreatedAt());
         response.setUpdatedAt(album.getUpdatedAt());
+        response.setPhotoCount(album.getPhotos() != null ? album.getPhotos().size() : 0);
         return response;
     }
 
