@@ -108,4 +108,11 @@ public class AlbumController {
         albumService.deleteAlbum(id);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
+
+    // 사진 삭제
+    @DeleteMapping("/photos/{userId}/{photoId}")
+    public ResponseEntity<Void> deletePhoto(@PathVariable Long userId, @PathVariable Long photoId) throws IOException {
+        photoService.deletePhoto(userId, photoId);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
 }

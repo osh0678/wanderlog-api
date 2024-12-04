@@ -47,4 +47,10 @@ public class FileUtils {
         // 저장된 파일의 절대 경로 반환
         return filePath.toString();
     }
+
+    //파일 삭제
+    public static void deleteFile(String filePath) throws IOException {
+        Path path = Path.of(filePath);
+        Files.deleteIfExists(path);
+    }
 }

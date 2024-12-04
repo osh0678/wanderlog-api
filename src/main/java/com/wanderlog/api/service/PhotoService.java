@@ -186,7 +186,20 @@ public class PhotoService {
     }
 
     // 사진 삭제
-    public void deletePhoto(Long photoId) {
+    public void deletePhoto(Long userId ,Long photoId) throws IOException {
+        // 사진 확인
+        Photo photo = photoRepository.findById(photoId)
+                .orElseThrow(() -> new RuntimeException("사진을 찾을 수 없습니다."));
+
+        // 유저 확인
+        if (!photo.getUser().getId().equals(userId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        // 파일 삭제
+        FileUtils.deleteFile(photo.getFilePath());
+
+        // 사진 삭제
         photoRepository.deleteById(photoId);
     }
 }
