@@ -16,6 +16,22 @@ public class UserService {
     // 사용자 등록
     @Transactional
     public User registerUser(User user) {
+        if (userRepository.findByEmail(user.getEmail()) != null) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        }
+
+        //비밀번호 정책
+        // 1. 8자 이상
+        // 2. 영문 대소문자, 숫자, 특수문자 중 3가지 이상 조합
+        // 3. 공백, 사용자 아이디 포함 X
+        if (user.getPassword().length() < 8) {
+            throw new IllegalArgumentException("비밀번호는 8자 이상이어야 합니다.");
+        }
+
+        if (!user.getPassword().matches(".*[a-zA-Z].*") || !user.getPassword().matches(".*[0-9].*") || !user.getPassword().matches(".*[!@#$%^&*()].*")) {
+            throw new IllegalArgumentException("비밀번호는 영문 대소문자, 숫자, 특수문자 중 3가지 이상을 조합해야 합니다.");
+        }
+
         return userRepository.save(user);
     }
 
