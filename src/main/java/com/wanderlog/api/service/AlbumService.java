@@ -86,7 +86,28 @@ public class AlbumService {
     }
 
     // 앨범 삭제
-    public void deleteAlbum(Long albumId) {
+    public void deleteAlbum(Long userId, Long albumId) throws IOException {
+        Album album = albumRepository.findById(albumId)
+                .orElseThrow(() -> new RuntimeException("앨범을 찾을 수 없습니다."));
+
+        if (!album.getUser().getId().equals(userId)) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        if (album.getCoverImage() != null) {
+            FileUtils.deleteFile(album.getCoverImage());
+        }
+
+        album.getPhotos().forEach(photo -> {
+            try {
+                if (photo.getFilePath() != null) {
+                    FileUtils.deleteFile(photo.getFilePath());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("파일 삭제 중 오류 발생: " + e.getMessage());
+            }
+        });
+
         albumRepository.deleteById(albumId);
     }
 }

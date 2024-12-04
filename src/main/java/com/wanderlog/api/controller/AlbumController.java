@@ -103,9 +103,9 @@ public class AlbumController {
     }
 
     // 앨범 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAlbum(@PathVariable Long id) {
-        albumService.deleteAlbum(id);
+    @DeleteMapping("/{userId}/{id}")
+    public ResponseEntity<Void> deleteAlbum(@PathVariable Long userId ,@PathVariable Long id) throws IOException {
+        albumService.deleteAlbum(userId, id);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
 
