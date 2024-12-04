@@ -74,7 +74,12 @@ public class AlbumService {
         response.setTitle(album.getTitle());
         response.setDescription(album.getDescription());
         response.setCoverPhotoUrl(album.getCoverImage());
-        response.setPhotoCount(album.getPhotos().size());
+        //사진 수가 없으면 0으로 설정
+        if (album.getPhotos() == null) {
+            response.setPhotoCount(0);
+        } else {
+            response.setPhotoCount(album.getPhotos().size());
+        }
         response.setCreatedAt(album.getCreatedAt());
         response.setUpdatedAt(album.getUpdatedAt());
         return response;
